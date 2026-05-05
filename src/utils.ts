@@ -52,6 +52,15 @@ export function makeErrorResponse(
   return { success: false, taskId, data: {}, error };
 }
 
+export function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function httpPost(
   url: string,
   body: Record<string, unknown>,

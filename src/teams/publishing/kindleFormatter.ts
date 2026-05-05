@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import { makeSuccessResponse, makeErrorResponse, escapeXml } from "../../utils.js";
 import { v4 as uuidv4 } from "uuid";
 
 // Formata conteúdo para ePub/PDF — processamento local
@@ -20,10 +20,10 @@ function generateEpubHtml(
     .map(
       (ch) => `
     <div class="chapter">
-      <h2>Capítulo ${ch.number}: ${ch.title}</h2>
+      <h2>Capítulo ${ch.number}: ${escapeXml(ch.title)}</h2>
       ${ch.content
         .split("\n")
-        .map((p) => `<p>${p}</p>`)
+        .map((p) => `<p>${escapeXml(p)}</p>`)
         .join("\n")}
     </div>`
     )
@@ -33,8 +33,8 @@ function generateEpubHtml(
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>${title}</title>
-  <meta name="author" content="${author}" />
+  <title>${escapeXml(title)}</title>
+  <meta name="author" content="${escapeXml(author)}" />
   <style>
     body { font-family: Georgia, serif; line-height: 1.6; margin: 2em; }
     h1 { text-align: center; margin-bottom: 2em; }
@@ -44,8 +44,8 @@ function generateEpubHtml(
   </style>
 </head>
 <body>
-  <h1>${title}</h1>
-  <p style="text-align:center"><em>por ${author}</em></p>
+  <h1>${escapeXml(title)}</h1>
+  <p style="text-align:center"><em>por ${escapeXml(author)}</em></p>
   ${chapterHtml}
 </body>
 </html>`;

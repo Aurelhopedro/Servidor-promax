@@ -23,11 +23,11 @@ export const creativeReplicateRun: ToolDefinition = {
   execute: async (input): Promise<ToolResponse> => {
     const taskId = uuidv4();
     try {
-      const [versionPath] = (input.model as string).split(":");
+      const [versionPath, versionHash] = (input.model as string).split(":");
       const data = await httpPost(
         `${REPLICATE_API}/predictions`,
         {
-          version: input.model,
+          version: versionHash,
           input: input.input,
           model: versionPath,
         },

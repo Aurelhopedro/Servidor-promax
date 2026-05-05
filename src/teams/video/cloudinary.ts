@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 function getCloudinaryConfig() {
   const url = process.env.CLOUDINARY_URL || "";
-  const match = url.match(/cloudinary:\/\/(\w+):(\w+)@(\w+)/);
+  const match = url.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
   return match
     ? { apiKey: match[1], apiSecret: match[2], cloudName: match[3] }
     : { apiKey: "", apiSecret: "", cloudName: "" };
