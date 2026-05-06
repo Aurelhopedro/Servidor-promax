@@ -1,6 +1,7 @@
 import "dotenv/config";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
 import type { TeamDefinition, ToolResponse } from "../types.js";
@@ -162,65 +163,59 @@ function createServer(): McpServer {
   return server;
 }
 
-const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, mcp-session-id",
-};
+export default async function handler(
+  req: IncomingMessage & { body?: unknown },
+  res: ServerResponse
+) {
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, mcp-session-id",
+    });
+    res.end();
+    return;
+  }
 
-export async function POST(request: Request): Promise<Response> {
+  // Only POST supported
+  if (req.method !== "POST") {
+    res.writeHead(405, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Method not allowed. Use POST." },
+        id: null,
+      })
+    );
+    return;
+  }
+
   const server = createServer();
 
   try {
-    const transport = new WebStandardStreamableHTTPServerTransport({
+    const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
 
     await server.connect(transport);
-    const response = await transport.handleRequest(request);
+    await transport.handleRequest(req, res, req.body);
 
-    const headers = new Headers(response.headers);
-    for (const [key, value] of Object.entries(CORS_HEADERS)) {
-      headers.set(key, value);
-    }
-
-    return new Response(response.body, {
-      status: response.status,
-      headers,
+    res.on("close", () => {
+      transport.close();
+      server.close();
     });
   } catch (error) {
     console.error("Error handling MCP request:", error);
-    return new Response(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        error: { code: -32603, message: "Internal server error" },
-        id: null,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      }
-    );
-  }
-}
-
-export function OPTIONS(): Response {
-  return new Response(null, {
-    status: 204,
-    headers: CORS_HEADERS,
-  });
-}
-
-export function GET(): Response {
-  return new Response(
-    JSON.stringify({
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Method not allowed. Use POST." },
-      id: null,
-    }),
-    {
-      status: 405,
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
+          id: null,
+        })
+      );
     }
-  );
+  }
 }

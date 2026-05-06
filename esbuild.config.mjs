@@ -5,18 +5,10 @@ await build({
   bundle: true,
   platform: "node",
   target: "node20",
-  format: "esm",
+  format: "cjs",
   outfile: "api/mcp.js",
-  external: [
-    "@modelcontextprotocol/sdk",
-    "dotenv",
-    "axios",
-    "zod",
-    "uuid",
-  ],
-  banner: {
-    js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
-  },
+  external: [],
+  minify: false,
 });
 
 console.log("✅ api/mcp.js built successfully");
