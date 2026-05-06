@@ -6,18 +6,17 @@ await build({
   platform: "node",
   target: "node20",
   format: "esm",
-  outfile: "api/mcp.mjs",
+  outfile: "api/mcp.js",
   external: [
     "@modelcontextprotocol/sdk",
     "dotenv",
     "axios",
     "zod",
     "uuid",
-    "@vercel/node",
   ],
   banner: {
     js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
   },
 });
 
-console.log("✅ api/mcp.mjs built successfully");
+console.log("✅ api/mcp.js built successfully");

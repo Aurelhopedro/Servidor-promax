@@ -30,7 +30,6 @@
   "devDependencies": {
     "@types/node": "^22.12.0",
     "@types/uuid": "^10.0.0",
-    "@vercel/node": "^5.7.15",
     "esbuild": "^0.28.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"

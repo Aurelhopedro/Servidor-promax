@@ -1,7 +1,6 @@
 import "dotenv/config";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 
 import type { TeamDefinition, ToolResponse } from "../types.js";
@@ -163,43 +162,65 @@ function createServer(): McpServer {
   return server;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return res.status(204).end();
-  }
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, mcp-session-id",
+};
 
-  // Only POST is supported in stateless MCP
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Method not allowed." },
-      id: null,
-    });
-  }
-
+export async function POST(request: Request): Promise<Response> {
   const server = createServer();
 
   try {
-    const transport = new StreamableHTTPServerTransport({
+    const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
 
     await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
+    const response = await transport.handleRequest(request);
 
-    res.on("close", () => {
-      transport.close();
-      server.close();
+    const headers = new Headers(response.headers);
+    for (const [key, value] of Object.entries(CORS_HEADERS)) {
+      headers.set(key, value);
+    }
+
+    return new Response(response.body, {
+      status: response.status,
+      headers,
     });
   } catch (error) {
     console.error("Error handling MCP request:", error);
-    if (!res.headersSent) {
-      return res.status(500).json({
+    return new Response(
+      JSON.stringify({
         jsonrpc: "2.0",
         error: { code: -32603, message: "Internal server error" },
         id: null,
-      });
-    }
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+      }
+    );
   }
+}
+
+export function OPTIONS(): Response {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+export function GET(): Response {
+  return new Response(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Method not allowed. Use POST." },
+      id: null,
+    }),
+    {
+      status: 405,
+      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+    }
+  );
 }
