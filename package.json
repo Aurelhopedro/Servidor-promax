@@ -5,9 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:http": "tsx api/mcp.ts",
     "build": "tsc",
+    "build:vercel": "tsc -p tsconfig.vercel.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.vercel.json"
   },
   "keywords": ["mcp", "claude", "n8n", "automation", "aggregator"],
   "license": "MIT",

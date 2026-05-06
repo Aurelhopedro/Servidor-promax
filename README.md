@@ -81,6 +81,40 @@ npm run start        # Produção
 npm run typecheck    # Verificar tipos
 ```
 
+## Deploy na Vercel
+
+O servidor está preparado para deploy como serverless function na Vercel usando HTTP Streamable transport (stateless).
+
+### Deploy automático
+
+1. Conectar o repo no [Vercel Dashboard](https://vercel.com/new)
+2. Configurar as variáveis de ambiente (ver `.env.example`)
+3. Deploy automático a cada push
+
+### Endpoint MCP
+
+Após deploy, o endpoint fica disponível em:
+```
+https://teu-projeto.vercel.app/mcp
+```
+
+O endpoint aceita apenas `POST` com JSON-RPC (protocolo MCP).
+
+### Configurar no Claude Desktop
+
+No ficheiro `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "mcp-agregador": {
+      "url": "https://teu-projeto.vercel.app/mcp"
+    }
+  }
+}
+```
+
+---
+
 ## Tecnologias
 
 - Node.js 20+
