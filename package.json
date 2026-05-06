@@ -2,7 +2,6 @@
   "name": "mcp-agregador",
   "version": "1.0.0",
   "description": "MCP Agregador — 1 Mensagem, Máximo Retorno. Orquestra tarefas entre Claude, n8n e múltiplas equipas de execução.",
-  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx src/index.ts",
