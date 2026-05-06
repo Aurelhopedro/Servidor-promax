@@ -1,5 +1,5 @@
 import "dotenv/config";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
@@ -163,36 +163,16 @@ function createServer(): McpServer {
   return server;
 }
 
-export default async function handler(
-  req: IncomingMessage & { body?: unknown },
-  res: ServerResponse
-) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   const method = req.method?.toUpperCase();
 
-  // GET and DELETE are not supported in stateless mode
-  if (method === "GET" || method === "DELETE") {
-    res.writeHead(405, { "Content-Type": "application/json" });
-    res.end(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        error: { code: -32000, message: "Method not allowed." },
-        id: null,
-      })
-    );
-    return;
-  }
-
-  // Only POST is supported
+  // Only POST is supported in stateless MCP
   if (method !== "POST") {
-    res.writeHead(405, { "Content-Type": "application/json" });
-    res.end(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        error: { code: -32000, message: "Method not allowed." },
-        id: null,
-      })
-    );
-    return;
+    return res.status(405).json({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Method not allowed." },
+      id: null,
+    });
   }
 
   const server = createServer();
@@ -212,14 +192,11 @@ export default async function handler(
   } catch (error) {
     console.error("Error handling MCP request:", error);
     if (!res.headersSent) {
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(
-        JSON.stringify({
-          jsonrpc: "2.0",
-          error: { code: -32603, message: "Internal server error" },
-          id: null,
-        })
-      );
+      return res.status(500).json({
+        jsonrpc: "2.0",
+        error: { code: -32603, message: "Internal server error" },
+        id: null,
+      });
     }
   }
 }
