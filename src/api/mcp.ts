@@ -4,28 +4,28 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
-import type { TeamDefinition, ToolResponse } from "../src/types.js";
+import type { TeamDefinition, ToolResponse } from "../types.js";
 import {
   divideTasks,
   DivideTasksInputSchema,
-} from "../src/orchestrator/taskDivider.js";
-import { scheduleTasks } from "../src/orchestrator/taskScheduler.js";
+} from "../orchestrator/taskDivider.js";
+import { scheduleTasks } from "../orchestrator/taskScheduler.js";
 import {
   handleTaskCallback,
   getTaskReport,
   getSingleTaskReport,
   TaskCallbackSchema,
-} from "../src/orchestrator/taskReporter.js";
+} from "../orchestrator/taskReporter.js";
 
-import { codeTeam } from "../src/teams/code/index.js";
-import { videoTeam } from "../src/teams/video/index.js";
-import { schedulingTeam } from "../src/teams/scheduling/index.js";
-import { socialTeam } from "../src/teams/social/index.js";
-import { marketTeam } from "../src/teams/market/index.js";
-import { marketingTeam } from "../src/teams/marketing/index.js";
-import { contentTeam } from "../src/teams/content/index.js";
-import { publishingTeam } from "../src/teams/publishing/index.js";
-import { creativeTeam } from "../src/teams/creative/index.js";
+import { codeTeam } from "../teams/code/index.js";
+import { videoTeam } from "../teams/video/index.js";
+import { schedulingTeam } from "../teams/scheduling/index.js";
+import { socialTeam } from "../teams/social/index.js";
+import { marketTeam } from "../teams/market/index.js";
+import { marketingTeam } from "../teams/marketing/index.js";
+import { contentTeam } from "../teams/content/index.js";
+import { publishingTeam } from "../teams/publishing/index.js";
+import { creativeTeam } from "../teams/creative/index.js";
 
 const ALL_TEAMS: TeamDefinition[] = [
   codeTeam,
@@ -164,10 +164,13 @@ function createServer(): McpServer {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const method = req.method?.toUpperCase();
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
 
   // Only POST is supported in stateless MCP
-  if (method !== "POST") {
+  if (req.method !== "POST") {
     return res.status(405).json({
       jsonrpc: "2.0",
       error: { code: -32000, message: "Method not allowed." },
@@ -179,7 +182,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined, // Stateless — sem sessão para serverless
+      sessionIdGenerator: undefined,
     });
 
     await server.connect(transport);
