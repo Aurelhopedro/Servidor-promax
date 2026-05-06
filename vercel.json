@@ -1,9 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:vercel",
-  "installCommand": "npm install",
   "functions": {
-    "api/mcp.js": {
+    "api/mcp.ts": {
       "maxDuration": 60
     }
   },
