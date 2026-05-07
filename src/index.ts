@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import "dotenv/config";
+import http from "http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
 
 import type { TeamDefinition, ToolResponse } from "./types.js";
@@ -40,21 +41,35 @@ const ALL_TEAMS: TeamDefinition[] = [
   creativeTeam,
 ];
 
-async function main() {
+const PORT = parseInt(process.env.PORT || "3000", 10);
+
+// Mapa de transportes SSE activos por sessão
+const transports = new Map<string, SSEServerTransport>();
+
+function createMcpServer(): McpServer {
   const server = new McpServer({
     name: "mcp-agregador",
     version: "1.0.0",
   });
 
-  // ─── Ferramenta principal: Orquestrador ────────────────────────────────────
+  // ─── Orquestrador ────────────────────────────────────────────────────────
   server.tool(
     "orchestrate",
-    "Recebe 1 mensagem, divide em subtarefas e delega para as equipas via n8n. Nunca bloqueia — responde imediatamente após delegar.",
+    "Recebe 1 mensagem, divide em subtarefas e delega para as equipas via n8n.",
     DivideTasksInputSchema.shape,
     async (input) => {
       const parsed = DivideTasksInputSchema.parse(input);
       const tasks = divideTasks(parsed);
-      const scheduledIds = await scheduleTasks(tasks);
+
+      let scheduledIds: string[] = [];
+      let warning: string | null = null;
+
+      if (!process.env.N8N_WEBHOOK_URL) {
+        warning = "N8N_WEBHOOK_URL não configurado — tarefas não enviadas para n8n";
+      } else {
+        scheduledIds = await scheduleTasks(tasks);
+      }
+
       return {
         content: [
           {
@@ -66,9 +81,9 @@ async function main() {
                 totalTasks: tasks.length,
                 scheduledTasks: scheduledIds.length,
                 taskIds: scheduledIds,
-                message: `${scheduledIds.length}/${tasks.length} tarefas enviadas para n8n`,
+                message: warning || `${scheduledIds.length}/${tasks.length} tarefas enviadas para n8n`,
               },
-              error: null,
+              error: warning,
             } satisfies ToolResponse),
           },
         ],
@@ -76,10 +91,10 @@ async function main() {
     }
   );
 
-  // ─── Callback do n8n ───────────────────────────────────────────────────────
+  // ─── Callback do n8n ─────────────────────────────────────────────────────
   server.tool(
     "task_callback",
-    "Recebe callback do n8n quando uma tarefa termina. Atualiza o estado interno.",
+    "Recebe callback do n8n quando uma tarefa termina.",
     TaskCallbackSchema.shape,
     async (input) => {
       const parsed = TaskCallbackSchema.parse(input);
@@ -90,7 +105,7 @@ async function main() {
     }
   );
 
-  // ─── Relatório de tarefas ──────────────────────────────────────────────────
+  // ─── Relatório de tarefas ─────────────────────────────────────────────────
   server.tool(
     "task_report",
     "Relatório geral de todas as tarefas (pending, running, done, failed)",
@@ -115,7 +130,7 @@ async function main() {
     }
   );
 
-  // ─── Registar todas as ferramentas de todas as equipas ─────────────────────
+  // ─── Ferramentas de todas as equipas ────────────────────────────────────
   for (const team of ALL_TEAMS) {
     for (const tool of team.tools) {
       server.tool(
@@ -134,7 +149,7 @@ async function main() {
     }
   }
 
-  // ─── Listar equipas e ferramentas ──────────────────────────────────────────
+  // ─── Listar equipas ──────────────────────────────────────────────────────
   server.tool(
     "list_teams",
     "Lista todas as equipas e ferramentas disponíveis",
@@ -166,17 +181,97 @@ async function main() {
     }
   );
 
-  // ─── Iniciar servidor MCP via STDIO ────────────────────────────────────────
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-
-  const totalTools = ALL_TEAMS.reduce((sum, t) => sum + t.tools.length, 0);
-  console.error(
-    `🚀 MCP Agregador iniciado — ${ALL_TEAMS.length} equipas, ${totalTools} ferramentas registadas`
-  );
+  return server;
 }
 
-main().catch((err) => {
-  console.error("Erro fatal:", err);
-  process.exit(1);
+// ─── Servidor HTTP ─────────────────────────────────────────────────────────
+const httpServer = http.createServer(async (req, res) => {
+  // CORS — necessário para Claude.ai
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  const url = new URL(req.url || "/", `http://localhost:${PORT}`);
+
+  // ── Health check ──────────────────────────────────────────────────────────
+  if (url.pathname === "/" || url.pathname === "/health") {
+    const totalTools = ALL_TEAMS.reduce((sum, t) => sum + t.tools.length, 0);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        name: "mcp-agregador",
+        version: "1.0.0",
+        status: "ok",
+        teams: ALL_TEAMS.length,
+        tools: totalTools,
+        n8n: !!process.env.N8N_WEBHOOK_URL,
+      })
+    );
+    return;
+  }
+
+  // ── SSE — Claude.ai liga aqui para receber eventos ────────────────────────
+  if (url.pathname === "/sse") {
+    const server = createMcpServer();
+    const transport = new SSEServerTransport("/message", res);
+    const sessionId = transport.sessionId;
+    transports.set(sessionId, transport);
+
+    res.on("close", () => {
+      transports.delete(sessionId);
+    });
+
+    await server.connect(transport);
+    return;
+  }
+
+  // ── Messages — Claude.ai envia mensagens aqui ─────────────────────────────
+  if (url.pathname === "/message" && req.method === "POST") {
+    const sessionId = url.searchParams.get("sessionId");
+    if (!sessionId) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "sessionId obrigatório" }));
+      return;
+    }
+
+    const transport = transports.get(sessionId);
+    if (!transport) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Sessão não encontrada" }));
+      return;
+    }
+
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        await transport.handlePostMessage(req, res, JSON.parse(body));
+      } catch (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Erro ao processar mensagem" }));
+      }
+    });
+    return;
+  }
+
+  // 404
+  res.writeHead(404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ error: "Rota não encontrada" }));
+});
+
+httpServer.listen(PORT, () => {
+  const totalTools = ALL_TEAMS.reduce((sum, t) => sum + t.tools.length, 0);
+  console.log(`🚀 MCP Agregador HTTP+SSE iniciado na porta ${PORT}`);
+  console.log(`   → Health: http://localhost:${PORT}/health`);
+  console.log(`   → SSE:    http://localhost:${PORT}/sse`);
+  console.log(`   → ${ALL_TEAMS.length} equipas, ${totalTools} ferramentas`);
+  if (!process.env.N8N_WEBHOOK_URL) {
+    console.warn("⚠️  N8N_WEBHOOK_URL não configurado — n8n desactivado");
+  }
 });
