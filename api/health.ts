@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { ALL_TEAMS } from "../src/server.js";
+import { ALL_TEAMS } from "../src/server";
 
 export const config = { maxDuration: 10 };
 
