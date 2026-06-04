@@ -9,7 +9,7 @@
 import "dotenv/config";
 import http from "http";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import { createMcpServer, ALL_TEAMS } from "./server.js";
+import { createMcpServer, ALL_TEAMS } from "./server";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
