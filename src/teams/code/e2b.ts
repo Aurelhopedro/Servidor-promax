@@ -1,9 +1,8 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 
-// Limite gratuito E2B: 100 horas de sandbox/mês
 const E2B_API = "https://api.e2b.dev/v1";
 
 function e2bHeaders(): Record<string, string> {
