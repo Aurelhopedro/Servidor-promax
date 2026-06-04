@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { codeGithubTools } from "./github.js";
-import { codeE2bTools } from "./e2b.js";
-import { codeSonarTools } from "./sonarqube.js";
+import type { TeamDefinition } from "../../types";
+import { codeGithubTools } from "./github";
+import { codeE2bTools } from "./e2b";
+import { codeSonarTools } from "./sonarqube";
 
 export const codeTeam: TeamDefinition = {
   name: "code",
