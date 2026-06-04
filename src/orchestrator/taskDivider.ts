@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import type { Task } from "../types.js";
+import type { Task } from "../types";
 
 const VALID_TEAMS = [
   "code",
