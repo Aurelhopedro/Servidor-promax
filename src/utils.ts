@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import type { ToolResponse } from "./types.js";
+import type { ToolResponse } from "./types";
 
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_RETRY_DELAY_MS = 2000;
