@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
+  "buildCommand": "echo 'no build needed'",
   "functions": {
     "api/mcp.ts":      { "maxDuration": 60 },
     "api/callback.ts": { "maxDuration": 30 },
@@ -20,10 +21,5 @@
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type,mcp-session-id,Authorization" }
       ]
     }
-  ],
-  "build": {
-    "env": {
-      "NODEJS_HELPERS": "0"
-    }
-  }
+  ]
 }
