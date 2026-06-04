@@ -1,9 +1,7 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
-
-// n8n self-hosted: sem limites de execução
 
 export const schedulingN8nSend: ToolDefinition = {
   name: "scheduling_n8n_send_task",
