@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { creativeStabilityTools } from "./stability.js";
-import { creativeElevenlabsTools } from "./elevenlabs.js";
-import { creativeReplicateTools } from "./replicate.js";
+import type { TeamDefinition } from "../../types";
+import { creativeStabilityTools } from "./stability";
+import { creativeElevenlabsTools } from "./elevenlabs";
+import { creativeReplicateTools } from "./replicate";
 
 export const creativeTeam: TeamDefinition = {
   name: "creative",
