@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { handleTaskCallback, TaskCallbackSchema } from "../src/orchestrator/taskReporter.js";
+import { handleTaskCallback, TaskCallbackSchema } from "../src/orchestrator/taskReporter";
 
 export const config = { maxDuration: 30 };
 
