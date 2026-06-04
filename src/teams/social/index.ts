@@ -1,10 +1,10 @@
-import type { TeamDefinition } from "../../types.js";
-import { socialFacebookTools } from "./facebook.js";
-import { socialInstagramTools } from "./instagram.js";
-import { socialTwitterTools } from "./twitter.js";
-import { socialLinkedinTools } from "./linkedin.js";
-import { socialTiktokTools } from "./tiktok.js";
-import { socialYoutubeTools } from "./youtube.js";
+import type { TeamDefinition } from "../../types";
+import { socialFacebookTools } from "./facebook";
+import { socialInstagramTools } from "./instagram";
+import { socialTwitterTools } from "./twitter";
+import { socialLinkedinTools } from "./linkedin";
+import { socialTiktokTools } from "./tiktok";
+import { socialYoutubeTools } from "./youtube";
 
 export const socialTeam: TeamDefinition = {
   name: "social",
