@@ -1,9 +1,7 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
-
-// Limite gratuito Cloudinary: 25 créditos/mês (~25GB storage + transformações)
 
 function getCloudinaryConfig() {
   const url = process.env.CLOUDINARY_URL || "";
