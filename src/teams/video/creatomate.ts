@@ -1,9 +1,8 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { httpPost, httpGet, makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { httpPost, httpGet, makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 
-// Limite gratuito Creatomate: 5 renders/mês no plano free
 const CREATOMATE_API = "https://api.creatomate.com/v1";
 
 function cmHeaders(): Record<string, string> {
