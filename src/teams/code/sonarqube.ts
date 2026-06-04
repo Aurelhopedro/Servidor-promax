@@ -1,9 +1,8 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { httpGet, httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { httpGet, httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 
-// Limite gratuito SonarQube Community: ilimitado self-hosted
 function sqHeaders(): Record<string, string> {
   return {
     Authorization: `Basic ${Buffer.from(`${process.env.SONARQUBE_TOKEN}:`).toString("base64")}`,
@@ -27,8 +26,7 @@ export const codeSonarAnalyze: ToolDefinition = {
         sqUrl("/measures/component"),
         {
           component: input.projectKey,
-          metricKeys:
-            "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density",
+          metricKeys: "bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density",
         },
         sqHeaders()
       );
