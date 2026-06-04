@@ -1,9 +1,8 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { httpPost, makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 
-// Limite gratuito QStash: 500 mensagens/dia
 const QSTASH_API = "https://qstash.upstash.io/v2";
 
 function qsHeaders(): Record<string, string> {
@@ -29,11 +28,8 @@ export const schedulingQstashPublish: ToolDefinition = {
         ...qsHeaders(),
         "Upstash-Forward-Content-Type": "application/json",
       };
-      if (input.delay) {
-        headers["Upstash-Delay"] = `${input.delay}s`;
-      }
+      if (input.delay) headers["Upstash-Delay"] = `${input.delay}s`;
       headers["Upstash-Retries"] = String(input.retries ?? 3);
-
       const data = await httpPost(
         `${QSTASH_API}/publish/${input.destinationUrl}`,
         input.body as Record<string, unknown>,
