@@ -1,7 +1,7 @@
 import axios from "axios";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Task } from "../types.js";
-import { withRetry } from "../utils.js";
+import type { Task } from "../types";
+import { withRetry } from "../utils";
 
 // ─── Supabase client (null se ENV não configurado) ────────────────────────
 let _supabase: SupabaseClient | null = null;
@@ -83,7 +83,6 @@ export async function updateTaskStatus(
     await saveTask(local);
     return;
   }
-  // tarefa pode estar no Supabase mas não na memória (após restart Vercel)
   const sb = getSupabase();
   if (sb) {
     await sb
