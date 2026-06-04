@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { videoCreatomateTools } from "./creatomate.js";
-import { videoShotstackTools } from "./shotstack.js";
-import { videoCloudinaryTools } from "./cloudinary.js";
+import type { TeamDefinition } from "../../types";
+import { videoCreatomateTools } from "./creatomate";
+import { videoShotstackTools } from "./shotstack";
+import { videoCloudinaryTools } from "./cloudinary";
 
 export const videoTeam: TeamDefinition = {
   name: "video",
