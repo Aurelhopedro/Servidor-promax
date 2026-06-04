@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { marketingBrevoTools } from "./brevo.js";
-import { marketingHubspotTools } from "./hubspot.js";
-import { marketingNotionTools } from "./notion.js";
+import type { TeamDefinition } from "../../types";
+import { marketingBrevoTools } from "./brevo";
+import { marketingHubspotTools } from "./hubspot";
+import { marketingNotionTools } from "./notion";
 
 export const marketingTeam: TeamDefinition = {
   name: "marketing",
