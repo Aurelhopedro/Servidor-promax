@@ -2,26 +2,26 @@ import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import type { TeamDefinition, ToolResponse } from "./types.js";
-import { divideTasks, DivideTasksInputSchema } from "./orchestrator/taskDivider.js";
-import { scheduleTasks } from "./orchestrator/taskScheduler.js";
+import type { TeamDefinition, ToolResponse } from "./types";
+import { divideTasks, DivideTasksInputSchema } from "./orchestrator/taskDivider";
+import { scheduleTasks } from "./orchestrator/taskScheduler";
 import {
   handleTaskCallback,
   getTaskReport,
   getSingleTaskReport,
   TaskCallbackSchema,
-} from "./orchestrator/taskReporter.js";
+} from "./orchestrator/taskReporter";
 
 // Importar todas as equipas
-import { codeTeam }       from "./teams/code/index.js";
-import { videoTeam }      from "./teams/video/index.js";
-import { schedulingTeam } from "./teams/scheduling/index.js";
-import { socialTeam }     from "./teams/social/index.js";
-import { marketTeam }     from "./teams/market/index.js";
-import { marketingTeam }  from "./teams/marketing/index.js";
-import { contentTeam }    from "./teams/content/index.js";
-import { publishingTeam } from "./teams/publishing/index.js";
-import { creativeTeam }   from "./teams/creative/index.js";
+import { codeTeam }       from "./teams/code/index";
+import { videoTeam }      from "./teams/video/index";
+import { schedulingTeam } from "./teams/scheduling/index";
+import { socialTeam }     from "./teams/social/index";
+import { marketTeam }     from "./teams/market/index";
+import { marketingTeam }  from "./teams/marketing/index";
+import { contentTeam }    from "./teams/content/index";
+import { publishingTeam } from "./teams/publishing/index";
+import { creativeTeam }   from "./teams/creative/index";
 
 export const ALL_TEAMS: TeamDefinition[] = [
   codeTeam,
