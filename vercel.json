@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "functions": {
+    "api/mcp.ts":      { "maxDuration": 60 },
+    "api/callback.ts": { "maxDuration": 30 },
+    "api/health.ts":   { "maxDuration": 10 }
+  },
+  "rewrites": [
+    { "source": "/mcp",      "destination": "/api/mcp"      },
+    { "source": "/callback", "destination": "/api/callback" },
+    { "source": "/health",   "destination": "/api/health"   }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,mcp-session-id,Authorization" }
+      ]
+    }
+  ]
+}
