@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { schedulingN8nTools } from "./n8nScheduler.js";
-import { schedulingQstashTools } from "./qstash.js";
-import { schedulingAgendaTools } from "./agenda.js";
+import type { TeamDefinition } from "../../types";
+import { schedulingN8nTools } from "./n8nScheduler";
+import { schedulingQstashTools } from "./qstash";
+import { schedulingAgendaTools } from "./agenda";
 
 export const schedulingTeam: TeamDefinition = {
   name: "scheduling",
