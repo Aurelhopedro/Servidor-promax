@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createMcpServer } from "../src/server.js";
+import { createMcpServer } from "../src/server";
 
 // Tempo máximo da função Vercel (segundos)
 export const config = { maxDuration: 60 };
