@@ -1,9 +1,9 @@
-import type { TeamDefinition } from "../../types.js";
-import { publishBookTools } from "./bookGenerator.js";
-import { publishArticleTools } from "./articleWriter.js";
-import { publishGhostTools } from "./ghostPublisher.js";
-import { publishMediumTools } from "./mediumPublisher.js";
-import { publishKindleTools } from "./kindleFormatter.js";
+import type { TeamDefinition } from "../../types";
+import { publishBookTools } from "./bookGenerator";
+import { publishArticleTools } from "./articleWriter";
+import { publishGhostTools } from "./ghostPublisher";
+import { publishMediumTools } from "./mediumPublisher";
+import { publishKindleTools } from "./kindleFormatter";
 
 export const publishingTeam: TeamDefinition = {
   name: "publishing",
