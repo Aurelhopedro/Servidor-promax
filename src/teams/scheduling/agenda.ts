@@ -1,9 +1,8 @@
 import { z } from "zod";
-import type { ToolDefinition, ToolResponse } from "../../types.js";
-import { makeSuccessResponse, makeErrorResponse } from "../../utils.js";
+import type { ToolDefinition, ToolResponse } from "../../types";
+import { makeSuccessResponse, makeErrorResponse } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 
-// Agenda local em memória para gerir tarefas agendadas
 interface ScheduledTask {
   id: string;
   name: string;
@@ -71,9 +70,7 @@ export const schedulingAgendaCancel: ToolDefinition = {
   execute: async (input): Promise<ToolResponse> => {
     const taskId = uuidv4();
     const entry = agendaStore.get(input.scheduleId as string);
-    if (!entry) {
-      return makeErrorResponse(taskId, "Agendamento não encontrado");
-    }
+    if (!entry) return makeErrorResponse(taskId, "Agendamento não encontrado");
     entry.active = false;
     agendaStore.set(entry.id, entry);
     return makeSuccessResponse(taskId, { cancelled: entry });
