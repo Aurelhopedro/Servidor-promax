@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { marketSerpTools } from "./serpapi.js";
-import { marketBraveTools } from "./brave.js";
-import { marketTavilyTools } from "./tavily.js";
+import type { TeamDefinition } from "../../types";
+import { marketSerpTools } from "./serpapi";
+import { marketBraveTools } from "./brave";
+import { marketTavilyTools } from "./tavily";
 
 export const marketTeam: TeamDefinition = {
   name: "market",
