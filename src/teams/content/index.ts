@@ -1,7 +1,7 @@
-import type { TeamDefinition } from "../../types.js";
-import { contentGroqTools } from "./groq.js";
-import { contentMistralTools } from "./mistral.js";
-import { contentWordpressTools } from "./wordpress.js";
+import type { TeamDefinition } from "../../types";
+import { contentGroqTools } from "./groq";
+import { contentMistralTools } from "./mistral";
+import { contentWordpressTools } from "./wordpress";
 
 export const contentTeam: TeamDefinition = {
   name: "content",
