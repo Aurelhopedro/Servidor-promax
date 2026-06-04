@@ -3,8 +3,8 @@ import {
   updateTaskStatus,
   getTaskStatus,
   getAllTasks,
-} from "./taskScheduler.js";
-import type { Task, ToolResponse } from "../types.js";
+} from "./taskScheduler";
+import type { Task, ToolResponse } from "../types";
 
 export const TaskCallbackSchema = z.object({
   taskId:  z.string(),
