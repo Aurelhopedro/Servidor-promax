@@ -20,5 +20,10 @@
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type,mcp-session-id,Authorization" }
       ]
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "NODEJS_HELPERS": "0"
+    }
+  }
 }
