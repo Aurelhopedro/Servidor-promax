@@ -1,10 +1,12 @@
 {
   "name": "mcp-agregador",
   "version": "1.0.0",
-  "description": "MCP Agregador — 1 Mensagem, Máximo Retorno.",
+  "description": "MCP Agregador — 1 Mensagem, Máximo Retorno. Servidor MCP com 9 equipas e +80 ferramentas integradas.",
   "scripts": {
+    "dev": "tsx src/index.ts",
     "dev:local": "tsx src/index.ts",
-    "build": "echo 'no build'",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"
   },
   "license": "MIT",
