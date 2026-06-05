@@ -5,19 +5,55 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { createMcpServer, ALL_TEAMS } from "./server";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
-const SELF_URL = process.env.RENDER_EXTERNAL_URL ?? `http://localhost:${PORT}`;
+const SELF_URL = process.env.RENDER_EXTERNAL_URL ?? `https://servidor-promax.onrender.com`;
 
 const transports = new Map<string, { transport: SSEServerTransport; timer: NodeJS.Timeout }>();
 
 const httpServer = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,mcp-session-id");
 
   if (req.method === "OPTIONS") { res.writeHead(204); res.end(); return; }
 
   const url = new URL(req.url ?? "/", `http://localhost:${PORT}`);
 
+  // OAuth metadata — necessário para Claude conectar como conector personalizado
+  if (url.pathname === "/.well-known/oauth-authorization-server") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      issuer: SELF_URL,
+      authorization_endpoint: `${SELF_URL}/oauth/authorize`,
+      token_endpoint: `${SELF_URL}/oauth/token`,
+      response_types_supported: ["code"],
+      grant_types_supported: ["authorization_code"],
+    }));
+    return;
+  }
+
+  // OAuth authorize — redireciona com code imediatamente (sem login)
+  if (url.pathname === "/oauth/authorize") {
+    const redirectUri = url.searchParams.get("redirect_uri") ?? "";
+    const state = url.searchParams.get("state") ?? "";
+    const code = "mcp-auth-code-" + Date.now();
+    const redirect = `${redirectUri}?code=${code}&state=${state}`;
+    res.writeHead(302, { Location: redirect });
+    res.end();
+    return;
+  }
+
+  // OAuth token — devolve token fixo
+  if (url.pathname === "/oauth/token" && req.method === "POST") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      access_token: "mcp-static-token",
+      token_type: "Bearer",
+      expires_in: 86400,
+    }));
+    return;
+  }
+
+  // Health check
   if (url.pathname === "/" || url.pathname === "/health") {
     const totalTools = ALL_TEAMS.reduce((sum, t) => sum + t.tools.length, 0);
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -28,6 +64,7 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
+  // SSE — Claude liga aqui
   if (url.pathname === "/sse") {
     const server = createMcpServer();
     const transport = new SSEServerTransport("/message", res);
@@ -39,6 +76,7 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
+  // Messages
   if (url.pathname === "/message" && req.method === "POST") {
     const sessionId = url.searchParams.get("sessionId");
     if (!sessionId) { res.writeHead(400); res.end(JSON.stringify({ error: "sessionId obrigatório" })); return; }
@@ -66,10 +104,10 @@ httpServer.listen(PORT, () => {
   // Ping a cada 10 minutos para evitar hibernação no Render free tier
   setInterval(async () => {
     try {
-      const res = await fetch(`${SELF_URL}/health`);
+      await fetch(`${SELF_URL}/health`);
       console.log(`🏓 Ping OK — ${new Date().toISOString()}`);
     } catch (err) {
       console.warn(`⚠️ Ping falhou: ${err}`);
     }
-  }, 10 * 60 * 1000); // 10 minutos
+  }, 10 * 60 * 1000);
 });
