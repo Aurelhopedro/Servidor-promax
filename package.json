@@ -1,16 +1,12 @@
 {
   "name": "mcp-agregador",
   "version": "1.0.0",
-  "description": "MCP Agregador — 1 Mensagem, Máximo Retorno. Orquestra tarefas entre Claude, n8n e múltiplas equipas de execução.",
-  "main": "dist/src/server.js",
+  "description": "MCP Agregador — 1 Mensagem, Máximo Retorno.",
   "scripts": {
-    "dev": "vercel dev",
     "dev:local": "tsx src/index.ts",
-    "build": "tsc",
-    "start": "node dist/src/index.js",
+    "build": "echo 'no build'",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["mcp", "claude", "n8n", "automation", "aggregator"],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -24,8 +20,7 @@
     "@types/node": "^22.12.0",
     "@types/uuid": "^10.0.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3",
-    "vercel": "^39.0.0"
+    "typescript": "^5.7.3"
   },
   "engines": {
     "node": ">=20.0.0"
