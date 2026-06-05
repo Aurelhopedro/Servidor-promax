@@ -7,6 +7,10 @@ import { createMcpServer, ALL_TEAMS } from "./server";
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 const SELF_URL = process.env.RENDER_EXTERNAL_URL ?? `https://servidor-promax.onrender.com`;
 
+// Client ID fixo para o Claude
+const OAUTH_CLIENT_ID = "mcp-agregador-client";
+const OAUTH_CLIENT_SECRET = "mcp-agregador-secret";
+
 const transports = new Map<string, { transport: SSEServerTransport; timer: NodeJS.Timeout }>();
 
 const httpServer = http.createServer(async (req, res) => {
@@ -18,35 +22,50 @@ const httpServer = http.createServer(async (req, res) => {
 
   const url = new URL(req.url ?? "/", `http://localhost:${PORT}`);
 
-  // OAuth metadata — necessário para Claude conectar como conector personalizado
+  // OAuth metadata
   if (url.pathname === "/.well-known/oauth-authorization-server") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       issuer: SELF_URL,
       authorization_endpoint: `${SELF_URL}/oauth/authorize`,
       token_endpoint: `${SELF_URL}/oauth/token`,
+      registration_endpoint: `${SELF_URL}/oauth/register`,
       response_types_supported: ["code"],
       grant_types_supported: ["authorization_code"],
+      code_challenge_methods_supported: ["S256"],
     }));
     return;
   }
 
-  // OAuth authorize — redireciona com code imediatamente (sem login)
+  // OAuth register — aceita qualquer cliente
+  if (url.pathname === "/oauth/register" && req.method === "POST") {
+    res.writeHead(201, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      client_id: OAUTH_CLIENT_ID,
+      client_secret: OAUTH_CLIENT_SECRET,
+      client_id_issued_at: Math.floor(Date.now() / 1000),
+      grant_types: ["authorization_code"],
+      response_types: ["code"],
+    }));
+    return;
+  }
+
+  // OAuth authorize
   if (url.pathname === "/oauth/authorize") {
     const redirectUri = url.searchParams.get("redirect_uri") ?? "";
     const state = url.searchParams.get("state") ?? "";
-    const code = "mcp-auth-code-" + Date.now();
+    const code = "mcp-code-" + Date.now();
     const redirect = `${redirectUri}?code=${code}&state=${state}`;
     res.writeHead(302, { Location: redirect });
     res.end();
     return;
   }
 
-  // OAuth token — devolve token fixo
+  // OAuth token
   if (url.pathname === "/oauth/token" && req.method === "POST") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
-      access_token: "mcp-static-token",
+      access_token: "mcp-static-token-" + Date.now(),
       token_type: "Bearer",
       expires_in: 86400,
     }));
@@ -64,7 +83,7 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
-  // SSE — Claude liga aqui
+  // SSE
   if (url.pathname === "/sse") {
     const server = createMcpServer();
     const transport = new SSEServerTransport("/message", res);
@@ -99,9 +118,10 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 MCP servidor na porta ${PORT}`);
   console.log(`   → SSE:    ${SELF_URL}/sse`);
   console.log(`   → Health: ${SELF_URL}/health`);
+  console.log(`   → OAuth:  ${SELF_URL}/.well-known/oauth-authorization-server`);
   console.log(`   → ${ALL_TEAMS.length} equipas, ${totalTools} ferramentas`);
 
-  // Ping a cada 10 minutos para evitar hibernação no Render free tier
+  // Ping a cada 10 minutos para evitar hibernação
   setInterval(async () => {
     try {
       await fetch(`${SELF_URL}/health`);
