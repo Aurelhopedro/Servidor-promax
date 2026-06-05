@@ -5,6 +5,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { createMcpServer, ALL_TEAMS } from "./server";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
+const SELF_URL = process.env.RENDER_EXTERNAL_URL ?? `http://localhost:${PORT}`;
 
 const transports = new Map<string, { transport: SSEServerTransport; timer: NodeJS.Timeout }>();
 
@@ -58,7 +59,17 @@ const httpServer = http.createServer(async (req, res) => {
 httpServer.listen(PORT, () => {
   const totalTools = ALL_TEAMS.reduce((sum, t) => sum + t.tools.length, 0);
   console.log(`🚀 MCP servidor na porta ${PORT}`);
-  console.log(`   → SSE:    http://localhost:${PORT}/sse`);
-  console.log(`   → Health: http://localhost:${PORT}/health`);
+  console.log(`   → SSE:    ${SELF_URL}/sse`);
+  console.log(`   → Health: ${SELF_URL}/health`);
   console.log(`   → ${ALL_TEAMS.length} equipas, ${totalTools} ferramentas`);
+
+  // Ping a cada 10 minutos para evitar hibernação no Render free tier
+  setInterval(async () => {
+    try {
+      const res = await fetch(`${SELF_URL}/health`);
+      console.log(`🏓 Ping OK — ${new Date().toISOString()}`);
+    } catch (err) {
+      console.warn(`⚠️ Ping falhou: ${err}`);
+    }
+  }, 10 * 60 * 1000); // 10 minutos
 });
