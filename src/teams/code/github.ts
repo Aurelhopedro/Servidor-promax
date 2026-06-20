@@ -5,9 +5,11 @@ import { v4 as uuidv4 } from "uuid";
 
 const GITHUB_API = "https://api.github.com";
 
-function ghHeaders(): Record<string, string> {
+// account: "principal" usa GITHUB_TOKEN | "machai" usa GITHUB_TOKEN2
+function ghHeaders(account: string = "principal"): Record<string, string> {
+  const token = account === "machai" ? process.env.GITHUB_TOKEN2 : process.env.GITHUB_TOKEN;
   return {
-    Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
   };
@@ -20,6 +22,7 @@ export const codeGithubCreateRepo: ToolDefinition = {
     name: z.string(),
     description: z.string().optional(),
     isPrivate: z.boolean().default(false),
+    account: z.enum(["principal", "machai"]).default("principal"),
   }),
   execute: async (input): Promise<ToolResponse> => {
     const taskId = uuidv4();
@@ -31,7 +34,7 @@ export const codeGithubCreateRepo: ToolDefinition = {
           description: (input.description as string) || "",
           private: input.isPrivate as boolean,
         },
-        ghHeaders()
+        ghHeaders(input.account as string)
       );
       return makeSuccessResponse(taskId, { repo: data });
     } catch (err) {
@@ -49,6 +52,7 @@ export const codeGithubCreateIssue: ToolDefinition = {
     title: z.string(),
     body: z.string().optional(),
     labels: z.array(z.string()).optional(),
+    account: z.enum(["principal", "machai"]).default("principal"),
   }),
   execute: async (input): Promise<ToolResponse> => {
     const taskId = uuidv4();
@@ -60,7 +64,7 @@ export const codeGithubCreateIssue: ToolDefinition = {
           body: (input.body as string) || "",
           labels: (input.labels as string[]) || [],
         },
-        ghHeaders()
+        ghHeaders(input.account as string)
       );
       return makeSuccessResponse(taskId, { issue: data });
     } catch (err) {
@@ -75,6 +79,7 @@ export const codeGithubListRepos: ToolDefinition = {
   inputSchema: z.object({
     perPage: z.number().default(30),
     page: z.number().default(1),
+    account: z.enum(["principal", "machai"]).default("principal"),
   }),
   execute: async (input): Promise<ToolResponse> => {
     const taskId = uuidv4();
@@ -82,7 +87,7 @@ export const codeGithubListRepos: ToolDefinition = {
       const data = await httpGet(
         `${GITHUB_API}/user/repos`,
         { per_page: input.perPage, page: input.page },
-        ghHeaders()
+        ghHeaders(input.account as string)
       );
       return makeSuccessResponse(taskId, { repos: data });
     } catch (err) {
